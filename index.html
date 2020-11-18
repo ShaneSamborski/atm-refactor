@@ -15,6 +15,7 @@
         <label>New account:</label>
         <input id="newpinput"></input>
         <button onclick="newAccount()">Submit</button>
+        <p><span id="datetime"></span></p>
     </div>
 
     <div id="menu" style="display:none"> 
@@ -24,8 +25,12 @@
         <button onclick="displayWithrawal()">Withdrawal</button>
 
         <button onclick="displayDeposit()">Deposit</button>
-       
+
+        <button onclick="displayChangePin()">Change Pin</button>
+
         <button onclick="returnToMenu()">Logout</button>
+
+        <p><span id="datetime2"></span></p>
     </div>
 
     <script>
@@ -40,14 +45,28 @@
         /*----------- the code to manipute data/ logic goes here --------*/ 
         function Atm() {
             this.accounts = [];
+            //[Account, Account, Account]
+            /* Account { 
+                pin : 1283
+                balance: 0
+                deposit : function
+                withdrawal : function
+             } */ 
             this.currentAccount = null; 
         
             this.createAccount = function (pin){
+                if (pin < 9999 && pin >= 1000) {
                     let newAccount = new Account(pin);
                     this.accounts.push(newAccount);
                     this.currentAccount = newAccount; 
                     updateATM(); 
-                    return newAccount; 
+                    return newAccount;
+                    displayMenu(); 
+                }
+                else {
+                    alert("Pins cannot contain letters or symbols, must be 4 numbers long, and cannot begin with zeroes.");
+                    location.reload();
+                }
             };
 
             this.getAccount = function (pin){
@@ -64,20 +83,38 @@
         }
 
         function Account(pin) { 
+            //let this = {};
             this.pin = pin;
             this.balance = 0;
 
             //withdrawal
             this.withdrawal = function(wdAmount){
-                this.balance = this.balance - wdAmount; 
+                this.balance = this.balance - wdAmount;
+                if (this.balance >= 0){ 
+                alert("Withdraw successful!");
                 updateATM(); 
+                }
+                else {
+                    alert("Insufficent funds! Cannot complete withdrawal!");
+                    this.balance = this.balance + wdAmount;
+                }
             }
 
             //deposit 
             this.deposit = function(depAmount){
                 this.balance = this.balance + depAmount;
+                alert("Deposit successful!");
                 updateATM(); 
             }
+
+            //change pin
+            this.changePin = function(newPin){
+                //update this.pin
+                this.pin = newPin;
+                updateATM();
+            }
+
+            //return this; 
 
         }
 
@@ -93,9 +130,6 @@
             /* clear the fields in the menu */ 
             document.getElementById("balance").innerHTML = null;
 
-            /* clear current account */ 
-            atm.currentAccount = null; 
-
             /* hide the menu and display the login */ 
             document.getElementById("menu").style.display = "none";
             document.getElementById("start").style.display = "block";
@@ -108,15 +142,32 @@
         }
 
         function displayWithrawal() {
-            let amount = Number(prompt("How much would you like to withdrawal?", ""));
-            atm.currentAccount.withdrawal(amount); 
-            displayBalance(); 
+            alert("You will be charged fees for this withdrawal.");
+            let withdrawamount = Number(prompt("How much would you like to withdrawal?", ""));
+            if (withdrawamount % 20 === 0 && withdrawamount <= 200){
+                atm.currentAccount.withdrawal(withdrawamount); 
+                displayBalance();
+                }
+                else {
+                    alert("Withdrawals can only be made in increments of $20, with a limit of $200");
+                }
         }
         
         function displayDeposit() {
-            let amount = Number(prompt("How much would you like to deposit?", ""));
-            atm.currentAccount.deposit(amount); 
-            displayBalance(); 
+            alert("You will be charged fees for this deposit.");
+            let depositamount = Number(prompt("How much would you like to deposit?", ""));
+            if (depositamount % 20 === 0 && depositamount <= 200){
+                atm.currentAccount.deposit(depositamount); 
+                displayBalance();
+                }
+                else if (depositamount === 69){
+                atm.currentAccount.deposit(depositamount);
+                alert("nice");
+                displayBalance();
+            }
+            else {
+                    alert("Deposits can only be made in increments of $20, with a limit of $200");
+                }
         }
         
         function newAccount(){
@@ -143,12 +194,36 @@
            
             /* clear the fields in the menu */ 
             document.getElementById("pinput").value = null; 
-            document.getElementById("newpinput").value = null;; 
+            document.getElementById("newpinput").value = null;
 
             /* hide the login and display the menu */ 
             document.getElementById("start").style.display = "none";
             document.getElementById("menu").style.display = "block";
         }
+
+        function displayChangePin(){
+            //we're going to have to update a pin on a specific account with a new pin
+            //1. get the new pin
+            let newPin = Number(prompt("Input your new pin", ""));
+
+            atm.currentAccount.changePin(newPin);
+            //2. see if pin exists already
+            for (let i = 0; i < this.accounts.length; i++) {
+                    if (this.accounts[i].pin === newPin) {
+                        this.currentAccount = this.accounts[i]; 
+                        updateATM(); 
+                        return this.accounts[i];
+                    }
+                }
+                return null; 
+            };
+            
+            //3. if not: update the pin, otherwise don't 
+            
+        let dt = new Date();
+        let dt2 = new Date();
+        document.getElementById("datetime").innerHTML = dt.toLocaleString();
+        document.getElementById("datetime2").innerHTML = dt2.toLocaleString();
     </script>
 
 </body>
